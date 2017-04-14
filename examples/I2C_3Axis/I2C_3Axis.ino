@@ -2,11 +2,17 @@
 #include <Wire.h>
 #include <ADXL345.h>
 
+#define GrovePowerPin   12
 
 ADXL345 adxl; //variable adxl is an instance of the ADXL345 library
 
 void setup(){
   SerialUSB.begin(115200);
+  pinMode(GrovePowerPin, OUTPUT);
+  // write high to grove power pin to enable all the Grove ports,
+  // or only Grove D2 port is usable. 
+  digitalWrite(GrovePowerPin, HIGH);   
+
   adxl.powerOn();
 
   //set activity/ inactivity thresholds (0-255)

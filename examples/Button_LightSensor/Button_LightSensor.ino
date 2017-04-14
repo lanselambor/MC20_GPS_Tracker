@@ -10,10 +10,13 @@ void setup() {
   SerialUSB.begin(115200);
   pinMode(ButtonPin, INPUT);
   pinMode(GrovePowerPin, OUTPUT);
-  digitalWrite(GrovePowerPin, HIGH);   //write high to grove power pin to open power switch of grove port
+  // write high to grove power pin to enable all the Grove ports,
+  // or only Grove D2 port is usable. 
+  digitalWrite(GrovePowerPin, HIGH);   
 }
 
 void loop() {
+    // print analog data when the button is pressed
     if (digitalRead(ButtonPin)) {
         SerialUSB.print("The value of light sensor:");
         SerialUSB.println(analogRead(LightSensorPin));

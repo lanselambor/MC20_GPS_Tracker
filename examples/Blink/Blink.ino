@@ -2,10 +2,10 @@
 #include "MC20_Arduino_Interface.h"
 #include <Adafruit_NeoPixel.h>
 
-#define USER_LED       10
+#define RGBPIN       10
 #define LED_NUM      1
 
-Adafruit_NeoPixel pixels = Adafruit_NeoPixel(LED_NUM, USER_LED, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(LED_NUM, RGBPIN, NEO_GRB + NEO_KHZ800);
 
 void setup() {
 
