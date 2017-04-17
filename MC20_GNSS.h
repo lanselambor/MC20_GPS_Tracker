@@ -35,13 +35,21 @@
 #include "MC20_Common.h"
 #include "MC20_Arduino_Interface.h"
 
+enum GNSS_MDOE{
+    GNSS_DEFAULT_MODE = 0, // Default quick start GNSS mode
+    EPO_QUICK_MODE = 1, // EPO quick mode
+    EPO_LP_MODE = 2, // EPO low power consumption mode
+    EPO_RL_MODE = 3  // Reference-location mode
+};
 
 class GNSS : public GPSTracker
 {
 public: 
     double longitude;
     double latitude;
-
+    double ref_longitude = 22.584322;
+    double ref_latitude = 113.966678;
+    
     /**
      *
      */
@@ -50,7 +58,19 @@ public:
     /**
      *
      */
+    bool open_GNSS(int mode);
+
+    bool open_GNSS_default_mode(void);   // Default GNSS mode
+    bool open_GNSS_EPO_quick_mode(void); // Quick mode with EPO
+    bool open_GNSS_EPO_LP_mode(void);   // Low power consumption mode with EPO
+    bool open_GNSS_RL_mode(void);     // Reference-location mode
+
     bool open_GNSS(void);
+    bool settingContext(void);
+    bool isNetworkRegistered(void);
+    bool isTimeSynchronized(void);
+    bool enableEPO(void);
+    bool triggerEPO(void);
 
     /** Get navigation infomation
      *

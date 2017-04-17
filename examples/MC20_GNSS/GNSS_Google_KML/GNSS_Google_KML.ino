@@ -21,7 +21,7 @@ void setup() {
   gnss.Power_On();
   SerialUSB.println("\n\rPower On!");
 
-  while(!gnss.open_GNSS()){
+  while(!gnss.open_GNSS(EPO_RL_MODE)){
     delay(1000);
   }
 
@@ -48,38 +48,34 @@ void setup() {
 }
 
 void loop() {
-  // gnss.dataFlowMode();
-  
-  // if(gnss.getCoordinate()){
-  //   SerialUSB.print("GNSS: ");
-  //   SerialUSB.print(gnss.longitude); 
-  //   SerialUSB.print(",");
-  //   SerialUSB.println(gnss.latitude);  
-  // } else{
-  //   SerialUSB.println("Error!");
-  // }
 
-
-  gnss.getCoordinate();
-  SerialUSB.print("GNSS: ");
-  SerialUSB.print(gnss.longitude, 6); 
-  SerialUSB.print(",");
-  SerialUSB.println(gnss.latitude, 6);
-
-  SerialUSB.println("Write file...");
-  myFile = SD.open(gpsFileName, FILE_WRITE);
-  if(myFile){
-    myFile.print(gnss.longitude);
-    myFile.print(" ");
-    myFile.println(gnss.latitude);
-    myFile.println();
+  if(!gnss.getCoordinate()){
+    SerialUSB.println("Get GNSS Error!");
+    SeeedOled.setTextXY(0,0);          //Set the cursor to Xth Page, Yth Column  
+    SeeedOled.putString("Get GNSS Error!"); //Print the String
   }
-  myFile.close();
+  else{
+    SerialUSB.print("GNSS: ");
+    SerialUSB.print(gnss.longitude, 6); 
+    SerialUSB.print(",");
+    SerialUSB.println(gnss.latitude, 6);
 
-  SeeedOled.setTextXY(0,0);          //Set the cursor to Xth Page, Yth Column  
-  SeeedOled.putFloat(gnss.longitude, 6); //Print the String
-  SeeedOled.setTextXY(2,0);          //Set the cursor to Xth Page, Yth Column  
-  SeeedOled.putFloat(gnss.latitude, 6); //Print the String
+    
+    myFile = SD.open(gpsFileName, FILE_WRITE);
+    if(myFile){
+      SerialUSB.println("Write file...");
+      myFile.print(gnss.longitude, 6);
+      myFile.print(", ");
+      myFile.print(gnss.latitude, 6);
+      myFile.println(", 0");
+    }
+    myFile.close();
+
+    SeeedOled.setTextXY(0,0);          //Set the cursor to Xth Page, Yth Column  
+    SeeedOled.putFloat(gnss.longitude, 6); //Print the String
+    SeeedOled.setTextXY(2,0);          //Set the cursor to Xth Page, Yth Column  
+    SeeedOled.putFloat(gnss.latitude, 6); //Print the String
+  }
 
   delay(2000);
 }

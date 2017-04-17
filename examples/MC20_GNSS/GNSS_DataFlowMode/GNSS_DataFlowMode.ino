@@ -15,8 +15,8 @@ void setup() {
   gnss.Power_On();
   SerialUSB.println("\n\rPower On!");
 
-  while(!gnss.open_GNSS()){
-    delay(1000);
+  if(!gnss.open_GNSS(EPO_RL_MODE)){
+    return;
   }
 
   SerialUSB.println("Open GNSS OK.");

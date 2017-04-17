@@ -328,7 +328,6 @@ public:
     
     char* getIPAddress();
     unsigned long getIPnumber();
-    bool getLocation(const char *apn, float *longitude, float *latitude);
     
 private:
     bool checkSIMStatus(void);

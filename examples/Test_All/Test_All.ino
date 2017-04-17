@@ -12,7 +12,17 @@ int bt_state = -1;
 char *deviceName = "N-612";
 GNSS gnss = GNSS();
 
+int grovePins[10] = {2,3,4,5,14,15,16,17,20,21};
+int pinIndex = 0;
+
 void setup() {
+  for(pinIndex = 0; pinIndex < 10; pinIndex++){
+    pinMode(grovePins[pinIndex], OUTPUT);
+    digitalWrite(grovePins[pinIndex], LOW);
+  }
+
+  SerialDBG.begin(115200);
+  // SerialDBG.setTimeout(10);
   SerialUSB.begin(115200);
   // while(!SerialUSB);
 
@@ -45,6 +55,21 @@ void setup() {
 }
 
 void loop() {
+  static int pinState = LOW;
+  for(pinIndex = 0; pinIndex < 10; pinIndex++){
+    digitalWrite(grovePins[pinIndex], pinState);
+  }
+  pinState = ~pinState;
+  
+  // Test SerialDBG
+  SerialDBG.write('a');
+  delay(1);
+  if('a' == SerialDBG.read()){
+    SerialUSB.println("Grove UART Test O.K!");
+  } else {
+    SerialUSB.println("Grove UART Test Failed!");
+  }
+
   gnss.dataFlowMode();
-  delay(2000);
+  delay(1000);
 }

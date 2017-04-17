@@ -167,6 +167,9 @@ boolean MC20_wait_for_resp(const char* resp, DataType type, unsigned int timeout
         }
 
     }
+    #ifdef UART_DEBUG
+    serialDebug.println();
+    #endif
     //If is a CMD, we will finish to read buffer.
     if(type == CMD) MC20_flush_serial();
     return true;
