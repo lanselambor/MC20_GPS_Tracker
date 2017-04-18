@@ -59,6 +59,7 @@ public:
      *
      */
     bool open_GNSS(int mode);
+    bool close_GNSS(void);
 
     bool open_GNSS_default_mode(void);   // Default GNSS mode
     bool open_GNSS_EPO_quick_mode(void); // Quick mode with EPO

@@ -23,6 +23,9 @@ void setup() {
 }
 
 void loop() {
-  gnss.dataFlowMode();  
-  delay(1000);
+  gnss.dataFlowMode();
+  gnss.close_GNSS();
+  delay(5000);
+  gnss.open_GNSS();
+  delay(5000);
 }

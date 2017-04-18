@@ -37,6 +37,23 @@ bool GNSS::initialize()
     return true;
 }
 
+bool GNSS::close_GNSS()
+{
+  int errCounts = 0;
+
+  //Open GNSS funtion
+  while(!MC20_check_with_cmd("AT+QGNSSC?\n\r", "+QGNSSC: 0", CMD, 2, 2000)){
+      errCounts ++;
+      if(errCounts > 5){
+        return false;
+      }
+      MC20_check_with_cmd("AT+QGNSSC=0\n\r", "OK", CMD, 2, 2000);
+      delay(1000);
+  }
+
+  return true;
+}
+
 bool GNSS::open_GNSS(int mode)
 {
   bool ret = true;
@@ -136,6 +153,7 @@ bool GNSS::open_GNSS_EPO_LP_mode(void)
 
   return true;
 }
+
 bool GNSS::open_GNSS_RL_mode(void)
 {
   int errCounts = 0;
