@@ -35,7 +35,7 @@ void setup() {
   }
 
   // Make a phone call
-  gpsTracker.callUp("13750024343");
+  gpsTracker.callUp("xxxxxxxxxxx");
   SerialUSB.println("Calling...");
 
   bt.BTPowerOn();

@@ -16,7 +16,7 @@ void setup() {
   gpsTracker.Power_On();
   SerialUSB.println("Power On!");
 
-  gpsTracker.sendSMS("13750024343", "Hello MC20!");
+  gpsTracker.sendSMS("xxxxxxxxxxx", "Hello MC20!");
 }
 
 void loop() {

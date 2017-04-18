@@ -21,7 +21,7 @@ void setup() {
   SerialUSB.println("Initialize done...");
 
   // Make a phone call
-  gpsTracker.callUp("13750024343");
+  gpsTracker.callUp("xxxxxxxxxxx");
   SerialUSB.println("Calling...");
 
 }
