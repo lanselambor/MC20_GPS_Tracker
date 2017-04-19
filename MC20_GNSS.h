@@ -125,12 +125,24 @@ public:
      */    
     bool dataFlowMode(void);
 
-    /**
-     *
-     */
-     // bool sdk_cmd_change_baudrate(uint16_t baudrate);
-     // bool sdk_cmd_
+    /* 
+        MTK and PQ commands 
+    */
+    uint8_t getCheckSum(char *string);
+    bool enable_EASY(void);
+    bool enable_GLP(int enable, int save);
+    bool set_DGPL_Mode();
 
+    bool getQueryStatus_LOCUS(void);
+    bool eraseFlash_LOCUS(void);
+    bool stopLogger_LOCUS(int status);
+    bool queryData_LOCUS(void);
+    bool setPeriodicMode();
+    bool set1PPS(bool status);
+    bool set_AlwaysLocate_mode(int mode);
+    /* 
+        End of MTK and PQ commands
+    */
 };
 
 #endif

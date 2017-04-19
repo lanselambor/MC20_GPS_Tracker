@@ -81,12 +81,12 @@ bool GNSS::open_GNSS(void)
   int errCounts = 0;
 
   //Open GNSS funtion
-  while(!MC20_check_with_cmd("AT+QGNSSC?\n\r", "+QGNSSC: 1", CMD, 2, 2000)){
+  while(!MC20_check_with_cmd("AT+QGNSSC?\n\r", "+QGNSSC: 1", CMD, 2, 2000, UART_DEBUG)){
       errCounts ++;
       if(errCounts > 5){
         return false;
       }
-      MC20_check_with_cmd("AT+QGNSSC=1\n\r", "OK", CMD, 2, 2000);
+      MC20_check_with_cmd("AT+QGNSSC=1\n\r", "OK", CMD, 2, 2000, UART_DEBUG);
       delay(1000);
   }
 
@@ -199,7 +199,7 @@ bool GNSS::open_GNSS_RL_mode(void)
   // Write in reference-location
   // sprintf(buffer, "AT+QGREFLOC=%f,%f\n\r", ref_longitude, ref_latitude);
   sprintf(buffer, "AT+QGREFLOC=22.584322,113.966678\n\r\n\r");
-  if(!MC20_check_with_cmd("AT+QGREFLOC=22.584322,113.966678\n\r", "OK", CMD, 2, 2000)){
+  if(!MC20_check_with_cmd("AT+QGREFLOC=22.584322,113.966678\n\r", "OK", CMD, 2, 2000, UART_DEBUG)){
     errCounts++;
     if(errCounts > 3)
     {
@@ -285,7 +285,9 @@ bool GNSS::getCoordinate(void)
 bool GNSS::dataFlowMode(void)
 {
     // Make sure that "#define UART_DEBUG" is uncomment.
-    return MC20_check_with_cmd("AT+QGNSSRD?\n\r", "OK", CMD);   
+    MC20_send_cmd("AT+QGNSSRD?\n\r");
+    return MC20_wait_for_resp("OK", CMD, 2, 2000, true);
+    // return MC20_check_with_cmd("AT+QGNSSRD?\n\r", "OK", CMD);
 }
 
 bool GNSS::settingContext(void)
@@ -293,7 +295,7 @@ bool GNSS::settingContext(void)
   int errCounts = 0;
 
   //Setting context
-  while(!MC20_check_with_cmd("AT+QIFGCNT=2\n\r", "OK", CMD, 2, 2000)){
+  while(!MC20_check_with_cmd("AT+QIFGCNT=2\n\r", "OK", CMD, 2, 2000, UART_DEBUG)){
     errCounts++;
     if(errCounts > 3)
     {
@@ -310,7 +312,7 @@ bool GNSS::isNetworkRegistered(void)
   int errCounts = 0;
 
   //
-  while(!MC20_check_with_cmd("AT+CREG?\n\r", "+CREG: 0,1", CMD, 2, 2000)){
+  while(!MC20_check_with_cmd("AT+CREG?\n\r", "+CREG: 0,1", CMD, 2, 2000, UART_DEBUG)){
     errCounts++;
     if(errCounts > 30)    // Check for 30 times
     {
@@ -320,7 +322,7 @@ bool GNSS::isNetworkRegistered(void)
   }
 
   errCounts = 0;
-  while(!MC20_check_with_cmd("AT+CGREG?\n\r", "+CGREG: 0,1", CMD, 2, 2000)){
+  while(!MC20_check_with_cmd("AT+CGREG?\n\r", "+CGREG: 0,1", CMD, 2, 2000, UART_DEBUG)){
     errCounts++;
     if(errCounts > 30)    // Check for 30 times
     {
@@ -338,7 +340,7 @@ bool GNSS::isTimeSynchronized(void)
 
   // Check time synchronization status
   errCounts = 0;
-  while(!MC20_check_with_cmd("AT+QGNSSTS?\n\r", "+QGNSSTS: 1", CMD, 2, 2000)){
+  while(!MC20_check_with_cmd("AT+QGNSSTS?\n\r", "+QGNSSTS: 1", CMD, 2, 2000, UART_DEBUG)){
     errCounts++;
     if(errCounts > 10)
     {
@@ -355,7 +357,7 @@ bool GNSS::enableEPO(void)
   int errCounts = 0;
 
   //
-  if(!MC20_check_with_cmd("AT+QGNSSEPO=1\n\r\n\r", "OK", CMD, 2, 2000)){
+  if(!MC20_check_with_cmd("AT+QGNSSEPO=1\n\r\n\r", "OK", CMD, 2, 2000, UART_DEBUG)){
     errCounts++;
     if(errCounts > 3)
     {
@@ -372,7 +374,7 @@ bool GNSS::triggerEPO(void)
   int errCounts = 0;
 
   //
-  if(!MC20_check_with_cmd("AT+QGEPOAID\n\r", "OK", CMD, 2, 2000)){
+  if(!MC20_check_with_cmd("AT+QGEPOAID\n\r", "OK", CMD, 2, 2000, UART_DEBUG)){
     errCounts++;
     if(errCounts > 3)
     {
@@ -383,3 +385,120 @@ bool GNSS::triggerEPO(void)
 
   return true;
 }
+
+uint8_t GNSS::getCheckSum(char *string)
+{
+  int XOR = 0;  
+  for (int i = 0; i < strlen(string); i++) 
+  {
+    XOR = XOR ^ string[i];
+  }
+  return (XOR/16)*10 + (XOR%16);
+}
+
+bool GNSS::enable_EASY(void)
+{
+  int errCounts = 0;
+
+  //
+  if(!MC20_check_with_cmd("AT+QGNSSCMD=0,\"$PMTK869,1,1*35\"\n\r", "OK", CMD, 2, 2000, UART_DEBUG)){
+    errCounts++;
+    if(errCounts > 3)
+    {
+      return false;
+    }
+    delay(1000);
+  }
+
+  return true;
+}
+
+
+bool GNSS::enable_GLP(int enable, int save)
+{
+  char str_buf[11];
+  char buf_w[64];
+  char checkSum;
+
+  MC20_clean_buffer(str_buf, 11);
+  sprintf(str_buf, "PQGLP,W,%d,%d", enable, save);
+  checkSum = getCheckSum(str_buf);
+
+  MC20_clean_buffer(buf_w, 64);
+  sprintf(buf_w, "AT+QGNSSCMD=0,\"$%s*%d\"", str_buf, checkSum);
+
+    //
+  MC20_send_cmd(buf_w);
+  if(!MC20_check_with_cmd("\n\r", "+QGNSSCMD: $PQGLP,W,OK*09", CMD, 5, 2000, UART_DEBUG)){
+    return false;
+  }
+
+  return true;
+}
+
+
+bool GNSS::eraseFlash_LOCUS(void)
+{
+  return MC20_check_with_cmd("AT+QGNSSCMD=0,\"$PMTK184,1*22\"\n\r", "+QGNSSCMD: $PMTK001,184,3*3D", CMD, 5, 2000, UART_DEBUG);
+}
+
+bool GNSS::stopLogger_LOCUS(int status)
+{
+  char str_buf[11];
+  char buf_w[64];
+  char checkSum;
+
+  MC20_clean_buffer(str_buf, 11);
+  sprintf(str_buf, "PMTK185,%d", status);
+  checkSum = getCheckSum(str_buf);
+
+  MC20_clean_buffer(buf_w, 64);
+  sprintf(buf_w, "AT+QGNSSCMD=0,\"$%s*%d\"", str_buf, checkSum);
+
+  //
+  MC20_send_cmd(buf_w);
+  if(!MC20_check_with_cmd("\n\r", "+QGNSSCMD: $PMTK001,185,3*3C", CMD, 5, 2000)){
+    return false;
+  }
+
+  return true;
+}
+
+bool GNSS::queryData_LOCUS(void)
+{
+  return MC20_check_with_cmd("AT+QGNSSCMD=0,\"$PMTK622,1*29\"\n\r", "+QGNSSCMD: $PMTK001,184,3*3D", CMD, 5, 2000, true);
+}
+
+bool GNSS::set1PPS(bool status)
+{
+  if(status){
+    return MC20_check_with_cmd("AT+QGNSSCMD=0,\"$PMTK255,1*2D\"\n\r", "+QGNSSCMD: $PMTK001,255,3*32", CMD, 5, 2000, true);
+  } else{
+    return MC20_check_with_cmd("AT+QGNSSCMD=0,\"$PMTK255,0*2C\"\n\r", "+QGNSSCMD: $PMTK001,255,3*32", CMD, 5, 2000, true);
+  }
+
+  return true;
+}
+
+bool set_AlwaysLocate_mode(int mode)
+{
+  char str_buf[11];
+  char buf_w[64];
+  char checkSum;
+
+  MC20_clean_buffer(str_buf, 11);
+  sprintf(str_buf, "PMTK225,%d", mode);
+  checkSum = getCheckSum(str_buf);
+
+  MC20_clean_buffer(buf_w, 64);
+  sprintf(buf_w, "AT+QGNSSCMD=0,\"$%s*%d\"", str_buf, checkSum);
+
+  //
+  MC20_send_cmd(buf_w);
+  if(!MC20_check_with_cmd("\n\r", "+QGNSSCMD: $PMTK001,225,3*35", CMD, 5, 2000)){
+    return false;
+  }
+
+  return true;
+}
+
