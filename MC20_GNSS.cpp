@@ -76,6 +76,23 @@ bool GNSS::open_GNSS(int mode)
   return ret;
 }
 
+bool GNSS::open_GNSS(void)
+{
+  int errCounts = 0;
+
+  //Open GNSS funtion
+  while(!MC20_check_with_cmd("AT+QGNSSC?\n\r", "+QGNSSC: 1", CMD, 2, 2000)){
+      errCounts ++;
+      if(errCounts > 5){
+        return false;
+      }
+      MC20_check_with_cmd("AT+QGNSSC=1\n\r", "OK", CMD, 2, 2000);
+      delay(1000);
+  }
+
+  return true;
+}
+
 bool GNSS::open_GNSS_default_mode(void)
 {
   return open_GNSS();
@@ -181,7 +198,7 @@ bool GNSS::open_GNSS_RL_mode(void)
 
   // Write in reference-location
   // sprintf(buffer, "AT+QGREFLOC=%f,%f\n\r", ref_longitude, ref_latitude);
-  sprintf(buffer, "AT+QGREFLOC=22.584322,113.966678\n\r");
+  sprintf(buffer, "AT+QGREFLOC=22.584322,113.966678\n\r\n\r");
   if(!MC20_check_with_cmd("AT+QGREFLOC=22.584322,113.966678\n\r", "OK", CMD, 2, 2000)){
     errCounts++;
     if(errCounts > 3)
@@ -271,23 +288,6 @@ bool GNSS::dataFlowMode(void)
     return MC20_check_with_cmd("AT+QGNSSRD?\n\r", "OK", CMD);   
 }
 
-bool GNSS::open_GNSS(void)
-{
-  int errCounts = 0;
-
-  //Open GNSS funtion
-  while(!MC20_check_with_cmd("AT+QGNSSC?\n\r", "+QGNSSC: 1", CMD, 2, 2000)){
-      errCounts ++;
-      if(errCounts > 5){
-        return false;
-      }
-      MC20_check_with_cmd("AT+QGNSSC=1\n\r", "OK", CMD, 2, 2000);
-      delay(1000);
-  }
-
-  return true;
-}
-
 bool GNSS::settingContext(void)
 {
   int errCounts = 0;
@@ -355,7 +355,7 @@ bool GNSS::enableEPO(void)
   int errCounts = 0;
 
   //
-  if(!MC20_check_with_cmd("AT+QGNSSEPO=1\n\r", "OK", CMD, 2, 2000)){
+  if(!MC20_check_with_cmd("AT+QGNSSEPO=1\n\r\n\r", "OK", CMD, 2, 2000)){
     errCounts++;
     if(errCounts > 3)
     {

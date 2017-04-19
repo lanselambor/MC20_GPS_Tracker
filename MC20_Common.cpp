@@ -107,6 +107,33 @@ bool GPSTracker::checkSIMStatus(void)
     return true;
 }
 
+bool GPSTracker::waitForNetworkRegister(void)
+{
+  int errCounts = 0;
+
+  //
+  while(!MC20_check_with_cmd("AT+CREG?\n\r", "+CREG: 0,1", CMD, 2, 2000)){
+    errCounts++;
+    if(errCounts > 30)    // Check for 30 times
+    {
+      return false;
+    }
+    delay(1000);
+  }
+
+  errCounts = 0;
+  while(!MC20_check_with_cmd("AT+CGREG?\n\r", "+CGREG: 0,1", CMD, 2, 2000)){
+    errCounts++;
+    if(errCounts > 30)    // Check for 30 times
+    {
+      return false;
+    }
+    delay(1000);
+  }
+
+  return true;
+}
+
 bool GPSTracker::sendSMS(char *number, char *data)
 {
     //char cmd[32];
@@ -117,9 +144,6 @@ bool GPSTracker::sendSMS(char *number, char *data)
     MC20_flush_serial();
     MC20_send_cmd("AT+CMGS=\"");
     MC20_send_cmd(number);
-    //sprintf(cmd,"AT+CMGS=\"%s\"\r\n", number);
-    //snprintf(cmd, sizeof(cmd),"AT+CMGS=\"%s\"\r\n", number);
-//    if(!MC20_check_with_cmd(cmd,">",CMD)) {
     if(!MC20_check_with_cmd(F("\"\r\n"),">",CMD)) {
         return false;
     }
@@ -127,7 +151,7 @@ bool GPSTracker::sendSMS(char *number, char *data)
     MC20_send_cmd(data);
     delay(500);
     MC20_send_End_Mark();
-    return MC20_wait_for_resp("OK\r\n", CMD);
+    return MC20_wait_for_resp("OK\r\n", CMD, 10);
 }
 
 char GPSTracker::isSMSunread()

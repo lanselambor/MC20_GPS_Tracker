@@ -59,18 +59,60 @@ public:
      *
      */
     bool open_GNSS(int mode);
+
+    /**
+     *
+     */
     bool close_GNSS(void);
 
+    /** Open GNSS by directly
+     *
+     */
     bool open_GNSS_default_mode(void);   // Default GNSS mode
+    
+    /** Open GNSS and turn on EPO mode
+     *
+     */
     bool open_GNSS_EPO_quick_mode(void); // Quick mode with EPO
+    
+    /** Open EPO before open GNSS,that cost down GNSS consumption
+     *
+     */
     bool open_GNSS_EPO_LP_mode(void);   // Low power consumption mode with EPO
+    
+    /** Before open EPO and GNSS, write Reference-Location into flash, this can help search location faster
+     *
+     */
     bool open_GNSS_RL_mode(void);     // Reference-location mode
 
+    /** open GNSS
+     *
+     */
     bool open_GNSS(void);
+    
+    /**
+     *
+     */
     bool settingContext(void);
+    
+    /**
+     *
+     */
     bool isNetworkRegistered(void);
+    
+    /**
+     *
+     */
     bool isTimeSynchronized(void);
+    
+    /**
+     *
+     */
     bool enableEPO(void);
+    
+    /**
+     *
+     */
     bool triggerEPO(void);
 
     /** Get navigation infomation
@@ -82,6 +124,13 @@ public:
      *
      */    
     bool dataFlowMode(void);
+
+    /**
+     *
+     */
+     // bool sdk_cmd_change_baudrate(uint16_t baudrate);
+     // bool sdk_cmd_
+
 };
 
 #endif

@@ -88,13 +88,22 @@ public:
      */ 
     void powerReset(void);
      
-     
+     /** Wait for network register
+     *  
+     *  
+     *  @returns
+     *      true on success
+     *      false on error
+     */
+     bool waitForNetworkRegister(void);
+
+
     /** send text SMS
      *  @param  *number phone number which SMS will be send to
      *  @param  *data   message that will be send to
      *  @returns
-     *      false on success
-     *      true on error
+     *      true on success
+     *      false on error
      */
     bool sendSMS(char* number, char* data);
 
