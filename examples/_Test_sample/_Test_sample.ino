@@ -46,7 +46,7 @@ int MC20_Test_GSM(void)
   }
 
   SerialUSB.print("Call: ");
-  SerialUSB.println(MC20_check_with_cmd("ATD15018657860;\r\n", "OK", CMD, 2, 5000), DEC);
+  SerialUSB.println(MC20_check_with_cmd("ATDxxxxxxxxxxx;\r\n", "OK", CMD, 2, 5000), DEC);
 
   delay(15000);
   Exit_A_Call();

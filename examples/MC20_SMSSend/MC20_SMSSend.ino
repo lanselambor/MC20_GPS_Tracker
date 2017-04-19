@@ -16,6 +16,7 @@ void setup() {
   gpsTracker.Power_On();
   SerialUSB.println("Power On!");
 
+<<<<<<< HEAD
   if(!gpsTracker.waitForNetworkRegister())
   {
     SerialUSB.println("Network error!");
@@ -26,6 +27,9 @@ void setup() {
 
   SerialUSB.print("ret: ");
   SerialUSB.println(ret);
+=======
+  gpsTracker.sendSMS("xxxxxxxxxxx", "Hello MC20!");
+>>>>>>> bc4c74bd16f833fc95fb9237d0c55b55ad65699c
 }
 
 void loop() {
