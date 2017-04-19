@@ -480,7 +480,7 @@ bool GNSS::set1PPS(bool status)
   return true;
 }
 
-bool set_AlwaysLocate_mode(int mode)
+bool GNSS::setAlwaysLocateMode(int mode)
 {
   char str_buf[11];
   char buf_w[64];

@@ -139,7 +139,7 @@ public:
     bool queryData_LOCUS(void);
     bool setPeriodicMode();
     bool set1PPS(bool status);
-    bool set_AlwaysLocate_mode(int mode);
+    bool setAlwaysLocateMode(int mode);
     /* 
         End of MTK and PQ commands
     */
