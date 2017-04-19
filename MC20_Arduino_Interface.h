@@ -40,7 +40,7 @@
 #define DEFAULT_TIMEOUT              5   //seconds
 #define DEFAULT_INTERCHAR_TIMEOUT 3000   //miliseconds
 
-#define UART_DEBUG
+#define UART_DEBUG true
 
 #ifdef UART_DEBUG
 #define ERROR(x)            SerialUSB.println(x)
@@ -68,8 +68,8 @@ void  MC20_send_cmd(const __FlashStringHelper* cmd);
 void  MC20_send_cmd_P(const char* cmd);
 boolean  MC20_Test_AT(void);
 void  MC20_send_End_Mark(void);
-boolean  MC20_wait_for_resp(const char* resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
-boolean  MC20_check_with_cmd(const char* cmd, const char *resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT*5);
-boolean  MC20_check_with_cmd(const __FlashStringHelper* cmd, const char *resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
+boolean MC20_wait_for_resp(const char* resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT, bool debug=false);
+boolean  MC20_check_with_cmd(const char* cmd, const char *resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT*5, bool debug=false);
+boolean  MC20_check_with_cmd(const __FlashStringHelper* cmd, const char *resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT, bool debug=false);
 
 #endif

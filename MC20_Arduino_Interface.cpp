@@ -139,7 +139,7 @@ void MC20_send_End_Mark(void)
     MC20_send_byte((char)26);
 }
 
-boolean MC20_wait_for_resp(const char* resp, DataType type, unsigned int timeout, unsigned int chartimeout)
+boolean MC20_wait_for_resp(const char* resp, DataType type, unsigned int timeout, unsigned int chartimeout, bool debug)
 {
     int len = strlen(resp);
     int sum = 0;
@@ -150,9 +150,9 @@ boolean MC20_wait_for_resp(const char* resp, DataType type, unsigned int timeout
         if(MC20_check_readable()) {
             char c = serialMC20.read();
             
-            #ifdef UART_DEBUG
-            serialDebug.write(c);
-            #endif
+            if(debug){
+                serialDebug.write(c);
+            }
 
             prevChar = millis();
             sum = (c==resp[sum]) ? sum+1 : 0;
@@ -176,15 +176,15 @@ boolean MC20_wait_for_resp(const char* resp, DataType type, unsigned int timeout
 }
 
 
-boolean MC20_check_with_cmd(const char* cmd, const char *resp, DataType type, unsigned int timeout, unsigned int chartimeout)
+boolean MC20_check_with_cmd(const char* cmd, const char *resp, DataType type, unsigned int timeout, unsigned int chartimeout, bool debug)
 {
     MC20_send_cmd(cmd);
-    return MC20_wait_for_resp(resp,type,timeout,chartimeout);
+    return MC20_wait_for_resp(resp,type,timeout,chartimeout,debug);
 }
 
 //HACERR que tambien la respuesta pueda ser FLASH STRING
-boolean MC20_check_with_cmd(const __FlashStringHelper* cmd, const char *resp, DataType type, unsigned int timeout, unsigned int chartimeout)
+boolean MC20_check_with_cmd(const __FlashStringHelper* cmd, const char *resp, DataType type, unsigned int timeout, unsigned int chartimeout, bool debug)
 {
     MC20_send_cmd(cmd);
-    return MC20_wait_for_resp(resp,type,timeout,chartimeout);
+    return MC20_wait_for_resp(resp,type,timeout,chartimeout,debug);
 }
