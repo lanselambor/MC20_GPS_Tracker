@@ -87,6 +87,8 @@ public:
      *      
      */ 
     void powerReset(void);
+
+    void io_init();
      
      /** Wait for network register
      *  
@@ -165,53 +167,6 @@ public:
      *      false on error
      */    
     bool hangup(void);  
-
-    /** Disable +CLIP notification when an incoming call is active, RING text is always shown. See isCallActive function
-     *  This is done in order no to overload serial outputCheck if there is a call active and get the phone number in that case
-     *  @returns
-     *      true on success
-     *      false on error
-     */
-    bool disableCLIPring(void);
-    
-    /** Get Subscriber Number (your number) using AT+CNUM command, but if nothing returns, then
-     *  you need to command this to your SIM900. (See AT+CPBS, AT+CPBW)
-     *  AT+CPBS="ON"
-     *  AT+CPBW=1,"+{Your Number}",145
-     *  AT+CPBS="SM"
-     *  @param
-     *  @return
-     *      true on success
-     *      false on error
-     */
-    bool getSubscriberNumber(char *number);
-    
-    /** Check if there is a call active and get the phone number in that case
-     *  @returns
-     *      true on success
-     *      false on error
-     */
-    bool isCallActive(char *number);  
-
-    /** get DateTime from SIM900 (see AT command: AT+CLTS=1) as string
-     *  @param
-     *  @returns
-     *      true on success
-     *      false on error
-     * 
-     *     If it doesn't work may be for two reasons:
-     *      1. Your carrier doesn't give that information
-     *      2. You have to configurate the SIM900 IC.
-         *          - First with SIM900_Serial_Debug example try this AT command: AT+CLTS?
-     *          - If response is 0, then it is disabled.
-     *          - Enable it by: AT+CLTS=1
-     *          - Now you have to save this config to EEPROM memory of SIM900 IC by: AT&W
-     *          - Now, you have to power down and power up again the SIM900 
-     *          - Try now again: AT+CCLK?
-     *          - It should work now
-     *
-     */
-    bool getDateTime(char *buffer);
     
     /** get Signal Strength from SIM900 (see AT command: AT+CSQ) as integer
     *  @param
@@ -220,133 +175,23 @@ public:
     *      false on error
     */
     bool getSignalStrength(int *buffer);
-    
-    /** Send USSD Command Synchronously (Blocking call until unsolicited response is received)
-     *  @param
-     *      *ussdCommand string command UUSD, ex: *123#
-     *      *resultCode char Result Code, see AT+CUSD command
-     *      *response   string response
-     *      *cellBroadcast  int Cell Broadcast Data Coding Scheme
-     *  @returns
-     *      true on success
-     *      false on error
-     */  
-    bool sendUSSDSynchronous(char *ussdCommand, char *resultcode, char *response);
 
-    /** Cancel USSD Session
-     *  @returns
-     *      true on success cancel active session
-     *      false on error or because no active session
-     */
-    bool cancelUSSDSession(void);
-
-//////////////////////////////////////////////////////
-/// GPSTracker
-//////////////////////////////////////////////////////  
-   /**  Connect the GPSTracker module to the network.
-     *  @return true if connected, false otherwise
-     */
-     
-    bool join(const char *apn = 0, const char *userName = 0, const char *passWord = 0);
-
-    /** Disconnect the GPSTracker module from the network
-     *  @returns
-     */
-    void disconnect(void);
-    
-    /** Open a tcp/udp connection with the specified host on the specified port
-     *  @param socket an endpoint of an inter-process communication flow of GPSTracker module,for SIM900 module, it is in [0,6]
-     *  @param ptl protocol for socket, TCP/UDP can be choosen
-     *  @param host host (can be either an ip address or a name. If a name is provided, a dns request will be established)
-     *  @param port port
-     *  @param timeout wait seconds till connected
-     *  @param chartimeout wait milliseconds between characters from GPSTracker module
-     *  @returns true if successful
-     */
-    bool connect(Protocol ptl, const char *host, int port, int timeout = 2 * DEFAULT_TIMEOUT, int chartimeout = 2 * DEFAULT_INTERCHAR_TIMEOUT);
-    bool connect(Protocol ptl, const char *host, const char *port, int timeout = 2 * DEFAULT_TIMEOUT, int chartimeout = 2 * DEFAULT_INTERCHAR_TIMEOUT);
-
-    // bool connect(Protocol ptl, const __FlashStringHelper *host, const __FlashStringHelper *port, int timeout = 2 * DEFAULT_TIMEOUT, int chartimeout = 2 * DEFAULT_INTERCHAR_TIMEOUT);
-
-    /** Check if a tcp link is active
-     *  @returns true if successful
-     */
-    bool is_connected(void);
-    
-    /** Close a tcp connection
-     *  @returns true if successful
-     */
-    bool close(void);
-    
-    /** check if GPSTracker module is readable or not
-     *  @returns true if readable
-     */
-    int readable(void);
-
-    /** wait a few time to check if GPSTracker module is readable or not
-     *  @param socket socket
-     *  @param wait_time time of waiting
-     */
-    int wait_readable(int wait_time);
-
-    /** wait a few time to check if GPSTracker module is writeable or not
-     *  @param socket socket
-     *  @param wait_time time of waiting
-     */
-    int wait_writeable(int req_size);
-
-    /** send data to socket
-     *  @param socket socket
-     *  @param str string to be sent
-     *  @param len string length
-     *  @returns return bytes that actually been send
-     */
-    int send(const char * str, int len);
-
-    /** send data to socket without AT+CIPSEND=len
-     *  @param socket socket
-     *  @param str string to be sent
-     *  @returns true if successful
-     */
-    boolean send(const char * str);
-    
-    /** read data from socket
-     *  @param socket socket
-     *  @param buf buffer that will store the data read from socket
-     *  @param len string length need to read from socket
-     *  @returns bytes that actually read
-     */
     int recv(char* buf, int len);
 
-    /** Enables the selected software serial port to listen
-     *  @returns none
+    /** GSM power Mode
+     * @param
+     *      0, least consumption 1, 4
+     *      1, standard mode
+     *      4, shut down RF send and receive function
      */
-    // void listen(void);
-    
-    /** Tests to see if requested software serial port is actively listening.
-     *  @returns none
-     */
-    // bool isListening(void);
-
-    /** convert the host to ip
-     *  @param host host ip string, ex. 10.11.12.13
-     *  @param ip long int ip address, ex. 0x11223344
-     *  @returns true if successful
-     */
-    //NOT USED bool gethostbyname(const char* host, uint32_t* ip); 
-    
-    char* getIPAddress();
-    unsigned long getIPnumber();
+    bool GSM_work_mode(int mode);
+    bool GSM_sleep_mode(int mode);
     
 private:
     bool checkSIMStatus(void);
-    uint32_t str_to_ip(const char* str);
-    // static GPSTracker* inst;
-    uint32_t _ip;
     int PWR_KEY = 13;  // PWR button
-    int PWR_GNSS = 7;  // GNSS power key
+    int PWR_GSM = 7;  // GNSS power key
     int RGB_PIN = 10;  // RGB LED Pin
     int VCCB_PIN = 12;  // VCCB control pin
-    char ip_string[16]; //XXX.YYY.ZZZ.WWW + \0
 };
 #endif

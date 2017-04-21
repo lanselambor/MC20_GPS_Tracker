@@ -42,12 +42,12 @@ bool GNSS::close_GNSS()
   int errCounts = 0;
 
   //Open GNSS funtion
-  while(!MC20_check_with_cmd("AT+QGNSSC?\n\r", "+QGNSSC: 0", CMD, 2, 2000)){
+  while(!MC20_check_with_cmd("AT+QGNSSC?\n\r", "+QGNSSC: 0", CMD, 2, 2000, UART_DEBUG)){
       errCounts ++;
       if(errCounts > 5){
         return false;
       }
-      MC20_check_with_cmd("AT+QGNSSC=0\n\r", "OK", CMD, 2, 2000);
+      MC20_check_with_cmd("AT+QGNSSC=0\n\r", "OK", CMD, 2, 2000, UART_DEBUG);
       delay(1000);
   }
 
@@ -502,3 +502,83 @@ bool GNSS::setAlwaysLocateMode(int mode)
   return true;
 }
 
+bool GNSS::select_searching_satellite(int gps, int beidou)
+{
+  char str_buf[20];
+  char buf_w[64];
+  char checkSum;
+
+  MC20_clean_buffer(str_buf, 20);
+  sprintf(str_buf, "PMTK353,%d,0,0,0,%d", gps, beidou);
+  checkSum = getCheckSum(str_buf);
+
+  MC20_clean_buffer(buf_w, 64);
+  sprintf(buf_w, "AT+QGNSSCMD=0,\"$%s*%d\"", str_buf, checkSum);
+
+  //
+  MC20_send_cmd(buf_w);
+  if(gps == 0 && beidou == 1){
+    if(!MC20_check_with_cmd("\n\r", "+QGNSSCMD: $PMTK001,353,3,0,0,0,0,1,48*08", CMD, 5, 2000)){
+      return false;
+    }
+  } else {
+    if(!MC20_check_with_cmd("\n\r", "+QGNSSCMD: $PMTK001,262,3,0*2A", CMD, 5, 2000)){
+      return false;
+    }
+  }
+  
+
+  return true;
+}
+
+bool GNSS::setWorkMode(int mode)
+{
+  char str_buf[11];
+  char buf_w[64];
+  char checkSum;
+
+  MC20_clean_buffer(str_buf, 11);
+  sprintf(str_buf, "PMTK225,%d", mode);
+  checkSum = getCheckSum(str_buf);
+
+  MC20_clean_buffer(buf_w, 64);
+  sprintf(buf_w, "AT+QGNSSCMD=0,\"$%s*%d\"", str_buf, checkSum);
+
+  //
+  MC20_send_cmd(buf_w);
+  if(!MC20_check_with_cmd("\n\r", "+QGNSSCMD: $PMTK001,225,3*35", CMD, 5, 2000)){
+    return false;
+  }
+
+  return true;
+}
+
+bool GNSS::setStandbyMode(int mode)
+{
+  char str_buf[11];
+  char buf_w[64];
+  char checkSum;
+  int errCount = 0;
+
+  MC20_clean_buffer(str_buf, 11);
+  sprintf(str_buf, "PMTK161,%d", mode);
+  checkSum = getCheckSum(str_buf);
+
+  MC20_clean_buffer(buf_w, 64);
+  sprintf(buf_w, "AT+QGNSSCMD=0,\"$%s*%d\"", str_buf, checkSum);
+
+  //
+  MC20_send_cmd(buf_w);
+  while(!MC20_check_with_cmd("\n\r", "+QGNSSCMD: $PMTK001,161,3*36", CMD, 5, 2000)){
+  // while(!MC20_check_with_cmd("\n\r", "OK", CMD, 5, 2000)){
+    errCount ++;
+    if(errCount > 10){
+      return false;
+    }
+    MC20_send_cmd(buf_w);
+    SerialUSB.println(__LINE__);
+    delay(1000);
+  }
+
+  return true;
+}

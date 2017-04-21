@@ -15,14 +15,34 @@ void setup() {
   gnss.Power_On();
   SerialUSB.println("\n\rPower On!");
 
-  if(!gnss.open_GNSS(EPO_RL_MODE)){
+  if(!gnss.open_GNSS(GNSS_DEFAULT_MODE)){
     return;
   }
 
+  //gnss.enable_GLP(1,0);
+
   SerialUSB.println("Open GNSS OK.");
+  delay(2000);
+
+  //gnss.set1PPS(true);
+  
+  // for(int i = 0; i < 5; i++){
+  //   gnss.dataFlowMode();
+  //   delay(1000);  
+  // }
+
+  //gnss.queryData_LOCUS();
 }
 
 void loop() {
-  gnss.dataFlowMode();  
-  delay(1000);
+  /* Debug */
+  // if(SerialUSB.available()){
+  //   serialMC20.write(SerialUSB.read());
+  // }
+  // if(serialMC20.available()){     
+  //   SerialUSB.write(serialMC20.read()); 
+  // }
+
+  gnss.dataFlowMode();
+  delay(1000);  
 }

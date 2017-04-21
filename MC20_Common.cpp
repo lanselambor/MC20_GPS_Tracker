@@ -38,6 +38,7 @@ GPSTracker::GPSTracker()
 {
     // inst = this;
     // MC20_init();
+    // io_init();
     pinMode(RGB_PIN, OUTPUT);
     digitalWrite(RGB_PIN, LOW);
 }
@@ -66,19 +67,21 @@ bool GPSTracker::Check_If_Power_On(void)
 void GPSTracker::Power_On(void)
 {
   MC20_init();
-
   if(Check_If_Power_On()){
     return;
   }
 
-  pinMode(PWR_GNSS, OUTPUT);
+  pinMode(PWR_GSM, OUTPUT);
   pinMode(PWR_KEY, OUTPUT);
+
+
   digitalWrite(PWR_KEY, LOW); 
   delay(2000);
-  digitalWrite(PWR_GNSS, LOW);
+  digitalWrite(PWR_GSM, LOW);
+  digitalWrite(PWR_GSM, HIGH);
   digitalWrite(PWR_KEY, HIGH);
   delay(2000);
-  digitalWrite(PWR_GNSS, HIGH);
+  digitalWrite(PWR_KEY, LOW);
 }
 
 void GPSTracker::powerReset(void)
@@ -86,6 +89,13 @@ void GPSTracker::powerReset(void)
   digitalWrite(PWR_KEY, LOW);
 }
   
+void GPSTracker::io_init()
+{
+  for(int i = 0; i< 20; i++){
+   pinMode(12, OUTPUT);
+   digitalWrite(i, LOW);
+  }
+}
   
 bool GPSTracker::checkSIMStatus(void)
 {
@@ -362,158 +372,6 @@ bool GPSTracker::hangup(void)
     return MC20_check_with_cmd(F("ATH\r\n"),"OK\r\n",CMD);
 }
 
-bool GPSTracker::disableCLIPring(void)
-{
-    return MC20_check_with_cmd(F("AT+CLIP=0\r\n"),"OK\r\n",CMD);
-}
-
-bool GPSTracker::getSubscriberNumber(char *number)
-{
-    //AT+CNUM                               --> 7 + CR = 8
-    //+CNUM: "","+628157933874",145,7,4     --> CRLF + 45 + CRLF = 49
-    //                                      -->
-    //OK                                    --> CRLF + 2 + CRLF = 6
-
-    byte i = 0;
-    char mc20_Buffer[65];
-    char *p,*s;
-    MC20_flush_serial();
-    MC20_send_cmd("AT+CNUM\r\n");
-    MC20_clean_buffer(mc20_Buffer,65);
-    MC20_read_buffer(mc20_Buffer,65,DEFAULT_TIMEOUT);
-    //Serial.print(mc20_Buffer);
-    if(NULL != ( s = strstr(mc20_Buffer,"+CNUM:"))) {
-        s = strstr((char *)(s),",");
-        s = s + 2;  //We are in the first phone number character 
-        p = strstr((char *)(s),"\""); //p is last character """
-        if (NULL != s) {
-            i = 0;
-            while (s < p) {
-              number[i++] = *(s++);
-            }
-            number[i] = '\0';
-        }
-        return true;
-    }  
-    return false;
-}
-
-bool GPSTracker::isCallActive(char *number)
-{
-    char mc20_Buffer[46];  //46 is enough to see +CPAS: and CLCC:
-    char *p, *s;
-    int i = 0;
-
-    MC20_send_cmd("AT+CPAS\r\n");
-    /*Result code:
-        0: ready
-        2: unknown
-        3: ringing
-        4: call in progress
-    
-      AT+CPAS   --> 7 + 2 = 9 chars
-                --> 2 char              
-      +CPAS: 3  --> 8 + 2 = 10 chars
-                --> 2 char
-      OK        --> 2 + 2 = 4 chars
-    
-      AT+CPAS
-      
-      +CPAS: 0
-      
-      OK
-    */
-
-    MC20_clean_buffer(mc20_Buffer,29);
-    MC20_read_buffer(mc20_Buffer,27);
-    //HACERR cuando haga lo de esperar a OK no me haría falta esto
-    //We are going to flush serial data until OK is recieved
-    MC20_wait_for_resp("OK\r\n", CMD);    
-    //Serial.print("Buffer isCallActive 1: ");Serial.println(mc20_Buffer);
-    if(NULL != ( s = strstr(mc20_Buffer,"+CPAS:"))) {
-      s = s + 7;
-      if (*s != '0') {
-         //There is something "running" (but number 2 that is unknow)
-         if (*s != '2') {
-           //3 or 4, let's go to check for the number
-           MC20_send_cmd("AT+CLCC\r\n");
-           /*
-           AT+CLCC --> 9
-           
-           +CLCC: 1,1,4,0,0,"656783741",161,""
-           
-           OK  
-
-           Without ringing:
-           AT+CLCC
-           OK              
-           */
-
-           MC20_clean_buffer(mc20_Buffer,46);
-           MC20_read_buffer(mc20_Buffer,45);
-            //Serial.print("Buffer isCallActive 2: ");Serial.println(mc20_Buffer);
-           if(NULL != ( s = strstr(mc20_Buffer,"+CLCC:"))) {
-             //There is at least one CALL ACTIVE, get number
-             s = strstr((char *)(s),"\"");
-             s = s + 1;  //We are in the first phone number character            
-             p = strstr((char *)(s),"\""); //p is last character """
-             if (NULL != s) {
-                i = 0;
-                while (s < p) {
-                    number[i++] = *(s++);
-                }
-                number[i] = '\0';            
-             }
-             //I need to read more buffer
-             //We are going to flush serial data until OK is recieved
-             return MC20_wait_for_resp("OK\r\n", CMD); 
-           }
-         }
-      }        
-    } 
-    return false;
-}
-
-bool GPSTracker::getDateTime(char *buffer)
-{
-    //If it doesn't work may be for two reasons:
-    //      1. Your carrier doesn't give that information
-    //      2. You have to configurate the SIM900 IC.
-    //          - First with SIM900_Serial_Debug example try this AT command: AT+CLTS?
-    //          - If response is 0, then it is disabled.
-    //          - Enable it by: AT+CLTS=1
-    //          - Now you have to save this config to EEPROM memory of SIM900 IC by: AT&W
-    //          - Now, you have to power down and power up again the SIM900 
-    //          - Try now again: AT+CCLK?
-    //          - It should work
-    
-    //AT+CCLK?                      --> 8 + CR = 9
-    //+CCLK: "14/11/13,21:14:41+04" --> CRLF + 29+ CRLF = 33
-    //                              
-    //OK                            --> CRLF + 2 + CRLF =  6
-
-    byte i = 0;
-    char mc20_Buffer[50];
-    char *p,*s;
-    MC20_flush_serial();
-    MC20_send_cmd("AT+CCLK?\r");
-    MC20_clean_buffer(mc20_Buffer,50);
-    MC20_read_buffer(mc20_Buffer,50,DEFAULT_TIMEOUT);
-    if(NULL != ( s = strstr(mc20_Buffer,"+CCLK:"))) {
-        s = strstr((char *)(s),"\"");
-        s = s + 1;  //We are in the first phone number character 
-        p = strstr((char *)(s),"\""); //p is last character """
-        if (NULL != s) {
-            i = 0;
-            while (s < p) {
-              buffer[i++] = *(s++);
-            }
-            buffer[i] = '\0';            
-        }
-        return true;
-    }  
-    return false;
-}
 
 bool GPSTracker::getSignalStrength(int *buffer)
 {
@@ -546,269 +404,6 @@ bool GPSTracker::getSignalStrength(int *buffer)
     return false;
 }
 
-bool GPSTracker::sendUSSDSynchronous(char *ussdCommand, char *resultcode, char *response)
-{
-    //AT+CUSD=1,"{command}"
-    //OK
-    //
-    //+CUSD:1,"{response}",{int}
-
-    byte i = 0;
-    char mc20_Buffer[200];
-    char *p,*s;
-    MC20_clean_buffer(response, sizeof(response));
-    
-    MC20_flush_serial();
-    MC20_send_cmd("AT+CUSD=1,\"");
-    MC20_send_cmd(ussdCommand);
-    MC20_send_cmd("\"\r");
-    if(!MC20_wait_for_resp("OK\r\n", CMD))
-        return false;
-    MC20_clean_buffer(mc20_Buffer,200);
-    MC20_read_buffer(mc20_Buffer,200,DEFAULT_TIMEOUT);
-    if(NULL != ( s = strstr(mc20_Buffer,"+CUSD: "))) {
-        *resultcode = *(s+7);
-        resultcode[1] = '\0';
-        if(!('0' <= *resultcode && *resultcode <= '2'))
-            return false;
-        s = strstr(s,"\"");
-        s = s + 1;  //We are in the first phone number character
-        p = strstr(s,"\""); //p is last character """
-        if (NULL != s) {
-            i = 0;
-            while (s < p) {
-              response[i++] = *(s++);
-            }
-            response[i] = '\0';            
-        }
-        return true;
-    }
-    return false;
-}
-
-bool GPSTracker::cancelUSSDSession(void)
-{
-    return MC20_check_with_cmd(F("AT+CUSD=2\r\n"),"OK\r\n",CMD);
-}
-
-//Here is where we ask for APN configuration, with F() so we can save MEMORY
-bool GPSTracker::join(const char *apn, const char *userName, const char *passWord)
-{
-    byte i;
-    char *p, *s;
-    char ipAddr[32];
-    //Select multiple connection
-    //MC20_check_with_cmd("AT+CIPMUX=1\r\n","OK",DEFAULT_TIMEOUT,CMD);
-
-    //set APN. OLD VERSION
-    //snprintf(cmd,sizeof(cmd),"AT+CSTT=\"%s\",\"%s\",\"%s\"\r\n",_apn,_userName,_passWord);
-    //MC20_check_with_cmd(cmd, "OK\r\n", DEFAULT_TIMEOUT,CMD);
-    MC20_send_cmd("AT+CSTT=\"");
-    if (apn) {
-      MC20_send_cmd(apn);
-    }
-    MC20_send_cmd("\",\"");
-    if (userName) {
-        MC20_send_cmd(userName);
-    }
-    MC20_send_cmd("\",\"");
-    if (passWord) {
-        MC20_send_cmd(passWord);
-    }
-    if (!MC20_check_with_cmd(F("\"\r\n"), "OK\r\n", CMD)) {
-        return false;
-    }
- 
-
-    //Brings up wireless connection
-    if (!MC20_check_with_cmd(F("AT+CIICR\r\n"),"OK\r\n", CMD)) {
-        return false;
-    }
-    
-    //Get local IP address
-    MC20_send_cmd("AT+CIFSR\r\n");
-    MC20_clean_buffer(ipAddr,32);
-    MC20_read_buffer(ipAddr,32);
-    //Response:
-    //AT+CIFSR\r\n       -->  8 + 2
-    //\r\n               -->  0 + 2
-    //10.160.57.120\r\n  --> 15 + 2 (max)   : TOTAL: 29 
-    //Response error:
-    //AT+CIFSR\r\n       
-    //\r\n               
-    //ERROR\r\n
-    if (NULL != strstr(ipAddr,"ERROR")) {
-        return false;
-    }
-    s = ipAddr + 11;
-    p = strstr((char *)(s),"\r\n"); //p is last character \r\n
-    if (NULL != s) {
-        i = 0;
-        while (s < p) {
-            ip_string[i++] = *(s++);
-        }
-        ip_string[i] = '\0';            
-    }
-    _ip = str_to_ip(ip_string);
-    if(_ip != 0) {
-        return true;
-    }
-    return false;
-} 
-
-void GPSTracker::disconnect()
-{
-    MC20_check_with_cmd("AT+CIPSHUT\r\n", "SHUT OK\r\n", CMD);
-}
-
-bool GPSTracker::connect(Protocol ptl,const char * host, int port, int timeout, int chartimeout)
-{
-    //char cmd[64];
-    char num[4];
-    char resp[96];
-    
-    //MC20_clean_buffer(cmd,64);
-    if(ptl == TCP) {
-        MC20_send_cmd("AT+CIPSTART=\"TCP\",\"");
-        MC20_send_cmd(host);
-        MC20_send_cmd("\",");
-        itoa(port, num, 10);
-        MC20_send_cmd(num);
-        MC20_send_cmd("\r\n");
-//        sprintf(cmd, "AT+CIPSTART=\"TCP\",\"%s\",%d\r\n",host, port);
-    } else if(ptl == UDP) {
-        MC20_send_cmd("AT+CIPSTART=\"UDP\",\"");
-        MC20_send_cmd(host);
-        MC20_send_cmd("\",");
-        itoa(port, num, 10);
-        MC20_send_cmd(num);
-        MC20_send_cmd("\r\n");
-
-    //        sprintf(cmd, "AT+CIPSTART=\"UDP\",\"%s\",%d\r\n",host, port);
-    } else {
-        return false;
-    }
-    
-
-    //MC20_send_cmd(cmd);
-    MC20_read_buffer(resp, 96, timeout, chartimeout);
-    //Serial.print("Connect resp: "); Serial.println(resp);    
-    if(NULL != strstr(resp,"CONNECT")) { //ALREADY CONNECT or CONNECT OK
-        return true;
-    }
-    return false;
-}
-
-//Overload with F() macro to SAVE memory
-bool GPSTracker::connect(Protocol ptl,const char *host, const char *port, int timeout, int chartimeout)
-{
-
-    char resp[96];
-
-
-    if(ptl == TCP) {
-        MC20_send_cmd("AT+CIPSTART=\"TCP\",\"");   //%s\",%d\r\n",host, port);
-    } else if(ptl == UDP) {
-        MC20_send_cmd("AT+CIPSTART=\"UDP\",\"");   //%s\",%d\r\n",host, port);
-    } else {
-        return false;
-    }
-    MC20_send_cmd(host);
-    MC20_send_cmd("\",");
-    MC20_send_cmd(port);
-    MC20_send_cmd("\r\n");
-//  Serial.print("Connect: "); Serial.println(cmd);
-    MC20_read_buffer(resp, 96, timeout, chartimeout);
-//  Serial.print("Connect resp: "); Serial.println(resp);    
-    if(NULL != strstr(resp,"CONNECT")) { //ALREADY CONNECT or CONNECT OK
-        return true;
-    }
-    return false;
-}
-
-bool GPSTracker::is_connected(void)
-{
-    char resp[96];
-    MC20_send_cmd("AT+CIPSTATUS\r\n");
-    MC20_read_buffer(resp,sizeof(resp),DEFAULT_TIMEOUT);
-    if(NULL != strstr(resp,"CONNECTED")) {
-        //+CIPSTATUS: 1,0,"TCP","216.52.233.120","80","CONNECTED"
-        return true;
-    } else {
-        //+CIPSTATUS: 1,0,"TCP","216.52.233.120","80","CLOSED"
-        //+CIPSTATUS: 0,,"","","","INITIAL"
-        return false;
-    }
-}
-
-bool GPSTracker::close()
-{
-    // if not connected, return
-    if (!is_connected()) {
-        return true;
-    }
-    return MC20_check_with_cmd("AT+CIPCLOSE\r\n", "CLOSE OK\r\n", CMD);
-}
-
-int GPSTracker::readable(void)
-{
-    return MC20_check_readable();
-}
-
-int GPSTracker::wait_readable(int wait_time)
-{
-    return MC20_wait_readable(wait_time);
-}
-
-int GPSTracker::wait_writeable(int req_size)
-{
-    return req_size+1;
-}
-
-int GPSTracker::send(const char * str, int len)
-{
-    //char cmd[32];
-    char num[4];
-    if(len > 0){
-        //snprintf(cmd,sizeof(cmd),"AT+CIPSEND=%d\r\n",len);
-        //sprintf(cmd,"AT+CIPSEND=%d\r\n",len);
-        MC20_send_cmd("AT+CIPSEND=");
-        itoa(len, num, 10);
-        MC20_send_cmd(num);
-        if(!MC20_check_with_cmd("\r\n",">",CMD)) {
-        //if(!MC20_check_with_cmd(cmd,">",CMD)) {
-            return 0;
-        }
-        /*if(0 != MC20_check_with_cmd(str,"SEND OK\r\n", DEFAULT_TIMEOUT * 10 ,DATA)) {
-            return 0;
-        }*/
-        delay(500);
-        MC20_send_cmd(str);
-        delay(500);
-        MC20_send_End_Mark();
-        if(!MC20_wait_for_resp("SEND OK\r\n", DATA, DEFAULT_TIMEOUT * 10, DEFAULT_INTERCHAR_TIMEOUT * 10)) {
-            return 0;
-        }        
-    }
-    return len;
-}
-
-boolean GPSTracker::send(const char * str)
-{
-    if(!MC20_check_with_cmd("AT+CIPSEND\r\n",">",CMD)) {
-        return false;
-    }
-    delay(500);
-    MC20_send_cmd(str);
-    delay(500);
-    MC20_send_End_Mark();
-    if(!MC20_wait_for_resp("SEND OK\r\n", DATA, DEFAULT_TIMEOUT * 10, DEFAULT_INTERCHAR_TIMEOUT * 10)) {
-        return false;
-    }        
-    return true;
-}
-
-
 int GPSTracker::recv(char* buf, int len)
 {
     MC20_clean_buffer(buf,len);
@@ -816,51 +411,21 @@ int GPSTracker::recv(char* buf, int len)
     return strlen(buf);
 }
 
-// void GPSTracker::listen(void)
-// {
-//     serialMC20.listen();
-// }
-
-// bool GPSTracker::isListening(void)
-// {
-//     return serialMC20.isListening();
-// }
-
-uint32_t GPSTracker::str_to_ip(const char* str)
+bool GPSTracker::GSM_work_mode(int mode)
 {
-    uint32_t ip = 0;
-    char* p = (char*)str;
-    for(int i = 0; i < 4; i++) {
-        ip |= atoi(p);
-        p = strchr(p, '.');
-        if (p == NULL) {
-            break;
-        }
-        ip <<= 8;
-        p++;
-    }
-    return ip;
+  char buf_w[20];
+  MC20_clean_buffer(buf_w, 20);
+  sprintf(buf_w, "AT+CFUN=%d", mode);
+  MC20_send_cmd(buf_w);
+  return MC20_check_with_cmd("\n\r", "OK", CMD, 2, 2000, UART_DEBUG);
 }
 
-char* GPSTracker::getIPAddress()
+bool GPSTracker::GSM_sleep_mode(int mode)
 {
-    //I have already a buffer with ip_string: snprintf(ip_string, sizeof(ip_string), "%d.%d.%d.%d", (_ip>>24)&0xff,(_ip>>16)&0xff,(_ip>>8)&0xff,_ip&0xff); 
-    return ip_string;
+  char buf_w[20];
+  MC20_clean_buffer(buf_w, 20);
+  sprintf(buf_w, "AT+QSCLK=%d", mode);
+  MC20_send_cmd(buf_w);
+  return MC20_check_with_cmd("\n\r", "OK", CMD, 2, 2000, UART_DEBUG);
 }
 
-unsigned long GPSTracker::getIPnumber()
-{
-    return _ip;
-}
-/* NOT USED bool GPSTracker::gethostbyname(const char* host, uint32_t* ip)
-{
-    uint32_t addr = str_to_ip(host);
-    char buf[17];
-    //snprintf(buf, sizeof(buf), "%d.%d.%d.%d", (addr>>24)&0xff, (addr>>16)&0xff, (addr>>8)&0xff, addr&0xff);
-    if (strcmp(buf, host) == 0) {
-        *ip = addr;
-        return true;
-    }
-    return false;
-}
-*/

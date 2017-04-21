@@ -27,6 +27,12 @@ void setup() {
 }
 
 void loop() {
-
+/* Debug */
+  if(SerialUSB.available()){
+    serialMC20.write(SerialUSB.read());
+  }
+  if(serialMC20.available()){     
+    SerialUSB.write(serialMC20.read()); 
+  }
 
 }

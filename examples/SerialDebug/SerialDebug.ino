@@ -22,5 +22,4 @@ void loop() {
   if(serialMC20.available()){     
     SerialUSB.write(serialMC20.read()); 
   }
-
 }

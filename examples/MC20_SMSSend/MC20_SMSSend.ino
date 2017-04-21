@@ -22,7 +22,8 @@ void setup() {
     return;
   }
 
-  gpsTracker.sendSMS("xxxxxxxxxxx", "Hello MC20!");
+  // gpsTracker.sendSMS("xxxxxxxxxxx", "Hello MC20!");
+  gpsTracker.sendSMS("13750024343", "Hello MC20!");
 
 }
 

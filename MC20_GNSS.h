@@ -131,7 +131,7 @@ public:
     uint8_t getCheckSum(char *string);
     bool enable_EASY(void);
     bool enable_GLP(int enable, int save);
-    bool set_DGPL_Mode();
+    bool set_DGPS_Mode();
 
     bool getQueryStatus_LOCUS(void);
     bool eraseFlash_LOCUS(void);
@@ -140,6 +140,11 @@ public:
     bool setPeriodicMode();
     bool set1PPS(bool status);
     bool setAlwaysLocateMode(int mode);
+
+    bool select_searching_satellite(int gps, int beidou);
+
+    bool setWorkMode(int mode);
+    bool setStandbyMode(int mode);
     /* 
         End of MTK and PQ commands
     */

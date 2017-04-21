@@ -13,7 +13,6 @@ int inComing = 0;
 GPSTracker gpsTracker = GPSTracker();
 
 void setup() {
-  // MC20_init();
   pinMode(RGBPIN, OUTPUT);
   digitalWrite(RGBPIN, LOW);
   SerialUSB.begin(115200);
@@ -22,7 +21,11 @@ void setup() {
   gpsTracker.Power_On();
   SerialUSB.println("Power On!");
 
-  // gpsTracker.deleteSMS(1);
+  if(!gpsTracker.waitForNetworkRegister())
+  {
+    SerialUSB.println("Network error!");
+    return;
+  }
 
 }
 
