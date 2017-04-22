@@ -82,12 +82,6 @@ void setup()
   // pixels.begin();
   nrgSave.begin(WAKE_EXT_INTERRUPT, 3, dummy);  //standby setup for external interrupts
 
-#ifdef MCU_SLEEP_AT_START
-  nrgSave.begin(WAKE_EXT_INTERRUPT, 3, dummy);  //standby setup for external interrupts
-  SerialUSB.println("MCU Stanby...");
-  nrgSave.standby();  //now mcu goes in standby mode
-#endif
-
 }
 
 void loop()
