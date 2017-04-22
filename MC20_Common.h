@@ -186,6 +186,7 @@ public:
      */
     bool GSM_work_mode(int mode);
     bool GSM_sleep_mode(int mode);
+    bool AT_PowerDown(void);
     
 private:
     bool checkSIMStatus(void);

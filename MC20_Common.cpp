@@ -429,3 +429,8 @@ bool GPSTracker::GSM_sleep_mode(int mode)
   return MC20_check_with_cmd("\n\r", "OK", CMD, 2, 2000, UART_DEBUG);
 }
 
+bool GPSTracker::AT_PowerDown(void)
+{
+  return MC20_check_with_cmd("AT+QPOWD=1\n\r", "NORMAL POWER DOWN", CMD, 5, 2000, UART_DEBUG);
+}
+
