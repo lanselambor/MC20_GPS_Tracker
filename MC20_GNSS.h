@@ -47,6 +47,8 @@ class GNSS : public GPSTracker
 public: 
     double longitude;
     double latitude;
+    char str_longitude[16];
+    char str_latitude[16];
     double ref_longitude = 22.584322;
     double ref_latitude = 113.966678;
     
@@ -115,7 +117,13 @@ public:
      */
     bool triggerEPO(void);
 
-    /** Get navigation infomation
+    /**
+     * Convert double coordinate data to string
+     */
+    void doubleToString(double longitude, double latitude);
+
+
+    /** Get coordinate infomation
      *
      */
     bool getCoordinate(void);

@@ -226,6 +226,17 @@ bool GNSS::open_GNSS_RL_mode(void)
   return true;
 }
 
+void GNSS::doubleToString(double longitude, double latitude)
+{
+  int u8_lon = (int)longitude;
+  int u8_lat = (int)latitude;
+  uint32_t u32_lon = (longitude - u8_lon)*1000000;
+  uint32_t u32_lat = (latitude - u8_lat)*1000000;
+
+  sprintf(str_longitude, "%d.%lu", u8_lon, u32_lon);
+  sprintf(str_latitude, "%d.%lu", u8_lat, u32_lat);
+}
+
 bool GNSS::getCoordinate(void)
 {
     
@@ -263,14 +274,17 @@ bool GNSS::getCoordinate(void)
                 //SerialUSB.println(strLine);  // 093359.000,2235.0189,N,11357.9816,E,2,17,0.80,35.6,M,-2.5,M,,*51
                 p = strtok(strLine, ",");
                 p = strtok(NULL, ",");
+                sprintf(str_longitude, "%s", p); 
                 longitude = strtod(p, NULL);
                 tmp = (int)(longitude / 100);
                 longitude = (double)(tmp + (longitude - tmp*100)/60.0);
                 p = strtok(NULL, ",");
                 p = strtok(NULL, ",");
+                sprintf(str_latitude, "%s", p);
                 latitude = strtod(p, NULL);
                 tmp = (int)(latitude / 100);
                 latitude = (double)(tmp + (latitude - tmp*100)/60.0);
+                doubleToString(longitude, latitude);
                 break;
             }
         } else {
