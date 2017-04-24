@@ -17,10 +17,10 @@
  */
 
 // #define MCU_SLEEP_AT_START
-#define GNSS_STANDBY
-// #define GNSS_BACKUP
+// #define GNSS_STANDBY
+#define GNSS_BACKUP
 #define GSM_SLEEP
-// #define GSM_NORMAL_POWER_DOWN
+#define GSM_NORMAL_POWER_DOWN
 #define GSM_WORK_MODE  0  // 0 - 最少功能， 1 - 全功能， 4 - 关闭RF
 
 /*--------------------*/
@@ -81,7 +81,6 @@ void setup()
 
   // pixels.begin();
   nrgSave.begin(WAKE_EXT_INTERRUPT, 3, dummy);  //standby setup for external interrupts
-
 }
 
 void loop()
@@ -123,7 +122,7 @@ void loop()
   ret = gnss.close_GNSS();
   SerialUSB.print("GNSS backup mode: ");
   SerialUSB.println(ret, DEC);
-  digitalWrite(12, LOW);
+  digitalWrite(12, LOW); // Disable GPS power
 #endif
 
 #ifdef GSM_SLEEP   // 进入 GSM sleep 模式， 先最少功能， 再sleep
@@ -160,12 +159,31 @@ void loop()
 
 #ifdef GSM_NORMAL_POWER_DOWN
   ret = gnss.AT_PowerDown();
-  digitalWrite(7, LOW);  // Shut down VBAT
+  //digitalWrite(7, LOW);  // Shut down VBAT
   SerialUSB.print("GSM power down: ");
   SerialUSB.println(ret);
   delay(1000);
 #endif
-
+  
+  // delay and pull down DTR 
+  //delay(10000);
+  //digitalWrite(DTR_PIN, LOW);
+  
+  
+  digitalWrite(7, LOW);  // VBAT shut down
+  
+  /*******************************************/
+  // Add by JY.W 2017-04-22 20:57
+  delay(1000);
+  Serial1.end(); // Disable Uart
+  pinMode(0, OUTPUT);
+  pinMode(1, OUTPUT);
+  digitalWrite(0, LOW); // Rx
+  digitalWrite(1, LOW); // Tx
+  digitalWrite(9, LOW); // DTR  90uA
+  /*******************************************/
+  
+  
   SerialUSB.println("MCU Stanby...");
   nrgSave.standby();  //now mcu goes in standby mode
 }
