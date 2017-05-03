@@ -119,10 +119,19 @@ void loop()
 #endif
 
 #ifdef GNSS_BACKUP
+  /* 命令加引脚 */
+  /*
   ret = gnss.close_GNSS();
   SerialUSB.print("GNSS backup mode: ");
   SerialUSB.println(ret, DEC);
   digitalWrite(12, LOW); // Disable GPS power
+  */
+
+
+  /* 命令 */
+  ret = gnss.close_GNSS();
+  SerialUSB.print("GNSS backup mode: ");
+  SerialUSB.println(ret, DEC);
 #endif
 
 #ifdef GSM_SLEEP   // 进入 GSM sleep 模式， 先最少功能， 再sleep
@@ -139,23 +148,7 @@ void loop()
   gnss.GSM_sleep_mode(1);  // sleep mode
   digitalWrite(DTR_PIN, HIGH);  
   SerialUSB.println("GSM Sleep Mode ...");
-  // delay(5000);
 #endif
-
-  // for(int i = 0; i< 20; i++){
-  //   if(i == 12 || i == 13 || i == 7){
-  //     digitalWrite(12, HIGH);
-  //     digitalWrite(13, LOW);
-  //     digitalWrite(7, HIGH);
-  //   }else{
-  //     pinMode(i, INPUT);   
-  //   }
-  // }
-
-  // pinMode(1, OUTPUT);
-  // digitalWrite(1, LOW);
-  // pinMode(8, OUTPUT);
-  // digitalWrite(8, LOW);
 
 #ifdef GSM_NORMAL_POWER_DOWN
   ret = gnss.AT_PowerDown();
@@ -164,12 +157,7 @@ void loop()
   SerialUSB.println(ret);
   delay(1000);
 #endif
-  
-  // delay and pull down DTR 
-  //delay(10000);
-  //digitalWrite(DTR_PIN, LOW);
-  
-  
+
   digitalWrite(7, LOW);  // VBAT shut down
   
   /*******************************************/

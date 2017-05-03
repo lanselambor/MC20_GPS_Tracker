@@ -275,15 +275,15 @@ bool GNSS::getCoordinate(void)
                 p = strtok(strLine, ",");
                 p = strtok(NULL, ",");
                 sprintf(str_longitude, "%s", p); 
-                longitude = strtod(p, NULL);
-                tmp = (int)(longitude / 100);
-                longitude = (double)(tmp + (longitude - tmp*100)/60.0);
-                p = strtok(NULL, ",");
-                p = strtok(NULL, ",");
-                sprintf(str_latitude, "%s", p);
                 latitude = strtod(p, NULL);
                 tmp = (int)(latitude / 100);
                 latitude = (double)(tmp + (latitude - tmp*100)/60.0);
+                p = strtok(NULL, ",");
+                p = strtok(NULL, ",");
+                sprintf(str_latitude, "%s", p);
+                longitude = strtod(p, NULL);
+                tmp = (int)(longitude / 100);
+                longitude = (double)(tmp + (longitude - tmp*100)/60.0);
                 doubleToString(longitude, latitude);
                 break;
             }
@@ -356,7 +356,7 @@ bool GNSS::isTimeSynchronized(void)
   errCounts = 0;
   while(!MC20_check_with_cmd("AT+QGNSSTS?\n\r", "+QGNSSTS: 1", CMD, 2, 2000, UART_DEBUG)){
     errCounts++;
-    if(errCounts > 10)
+    if(errCounts > 2)  // Check Time asynchronize 
     {
       return true;
     }
@@ -402,7 +402,7 @@ bool GNSS::triggerEPO(void)
 
 uint8_t GNSS::getCheckSum(char *string)
 {
-  int XOR = 0;  
+  uint8_t XOR = 0;  
   for (int i = 0; i < strlen(string); i++) 
   {
     XOR = XOR ^ string[i];
@@ -529,7 +529,6 @@ bool GNSS::select_searching_satellite(int gps, int beidou)
   MC20_clean_buffer(buf_w, 64);
   sprintf(buf_w, "AT+QGNSSCMD=0,\"$%s*%d\"", str_buf, checkSum);
 
-  //
   MC20_send_cmd(buf_w);
   if(gps == 0 && beidou == 1){
     if(!MC20_check_with_cmd("\n\r", "+QGNSSCMD: $PMTK001,353,3,0,0,0,0,1,48*08", CMD, 5, 2000)){

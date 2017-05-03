@@ -54,23 +54,19 @@ bool GPRS::init(const char *apn)
     
     //AT+QIFGCNT=0 
     if(!MC20_check_with_cmd("AT+QIFGCNT=0\n\r", "OK", CMD, DEFAULT_TIMEOUT)){
-        DEBUG(__LINE__);
         return false;
     }
-    DEBUG(__LINE__);
 
     // Setting APN, AT+QICSGP=1,APN
     MC20_clean_buffer(sendBuffer,32);
     sprintf(sendBuffer, "AT+QICSGP=1,\"%s\"\n\r", apn);
     if(!MC20_check_with_cmd(sendBuffer, "OK", CMD, DEFAULT_TIMEOUT)){
-        DEBUG(__LINE__);
         return false;
     }
 
     // Enter domain access
     MC20_check_with_cmd("AT+QIDNSIP=1\n\r", "OK", CMD, 2);
 
-    DEBUG(__LINE__);
 
 
     return true;
@@ -89,7 +85,7 @@ bool GPRS::join(void)
     MC20_clean_buffer(sendBuffer,32);
    
     //Select multiple connection
-    //sim900_check_with_cmd("AT+CIPMUX=1\r\n","OK",DEFAULT_TIMEOUT,CMD);
+    //MC20_check_with_cmd("AT+CIPMUX=1\r\n","OK",DEFAULT_TIMEOUT,CMD);
 
     //AT+CPIN? 
     timeStart = millis();
@@ -99,8 +95,6 @@ bool GPRS::join(void)
         }
         delay(1000);
     }
-    DEBUG();
-    DEBUG(__LINE__);
 
 
     //AT+CREG?
@@ -111,8 +105,6 @@ bool GPRS::join(void)
         }
         delay(1000);
     } 
-    DEBUG();
-    DEBUG(__LINE__);
 
 
     timeStart = millis();
@@ -122,8 +114,6 @@ bool GPRS::join(void)
         }
         delay(1000);
     }
-    DEBUG();
-    DEBUG(__LINE__);
 
 
     timeStart = millis();
@@ -133,8 +123,6 @@ bool GPRS::join(void)
         }
         delay(1000);
     }
-    DEBUG();
-    DEBUG(__LINE__);
 
 
 //=============================   Bellow three commands must be in sequence  ============================
@@ -143,8 +131,6 @@ bool GPRS::join(void)
     if(!MC20_check_with_cmd("AT+QIREGAPP\n\r", "OK", CMD, 1)){
         powerReset();
     }
-    DEBUG();
-    DEBUG(__LINE__);
 
     // AT+QIACT
     while(!MC20_check_with_cmd("AT+QIACT\n\r", "OK", CMD, 10)) {
@@ -155,8 +141,6 @@ bool GPRS::join(void)
         errCount++;
         delay(1000);
     }
-    DEBUG();
-    DEBUG(__LINE__);
 
     // Get IP address, AT+QILOCIP
     MC20_clean_buffer(ipAddr, 32);
@@ -181,7 +165,6 @@ bool GPRS::join(void)
     }
 
     ip_string[i] = '\0';
-    // DEBUG(ip_string);
     _ip = str_to_ip(p);
     if(_ip != 0) {
         return true;
@@ -272,10 +255,4 @@ bool GPRS::closeTCP(void)
     MC20_send_cmd("AT+QICLOSE\r\n");
     return true;
 }
-
-// int GPRS::shutTCP(void)
-// {
-//     MC20_send_cmd("AT+CIPSHUT\r\n");
-//     return 0;
-// }
 

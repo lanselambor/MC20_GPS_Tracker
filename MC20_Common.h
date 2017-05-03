@@ -185,14 +185,26 @@ public:
      *      4, shut down RF send and receive function
      */
     bool GSM_work_mode(int mode);
-    bool GSM_sleep_mode(int mode);
+
+    /** Config GSM slow clock mode
+     * @param
+     *  0 Disable slow clock
+     *  1 Enable slow clock, and it is controlled by DTR
+     *  2 When there is no data on serial port in 5 seconds, module will enter into sleep Disable slow clock
+     */
+    bool GSM_config_slow_clk(int mode);
+
+
+    /**
+     * Turn off module power buy AT commnad
+     */
     bool AT_PowerDown(void);
     
 private:
     bool checkSIMStatus(void);
-    int PWR_KEY = 13;  // PWR button
-    int PWR_GSM = 7;  // GNSS power key
+    int PWR_KEY = 13;  // Pulse power control
+    int PWR_BAT = 7;  // BAT power
     int RGB_PIN = 10;  // RGB LED Pin
-    int VCCB_PIN = 12;  // VCCB control pin
+    int VB_PIN = 12;  // VCCB control pin
 };
 #endif

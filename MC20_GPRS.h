@@ -110,15 +110,6 @@ public:
      *      -1 on error
      */
     bool closeTCP(void);
-
-    /** close TCP service
-     *  @returns
-     *      0 on success
-     *      -1 on error
-     */
-    int shutTCP(void);
-
-
 };
 
 #endif

@@ -71,17 +71,14 @@ void GPSTracker::Power_On(void)
     return;
   }
 
-  pinMode(PWR_GSM, OUTPUT);
+  pinMode(PWR_BAT, OUTPUT);
   pinMode(PWR_KEY, OUTPUT);
 
-
-  digitalWrite(PWR_KEY, LOW); 
-  delay(2000);
-  digitalWrite(PWR_GSM, LOW);
-  digitalWrite(PWR_GSM, HIGH);
-  digitalWrite(PWR_KEY, HIGH);
+  digitalWrite(PWR_BAT, HIGH);
+  digitalWrite(PWR_KEY, HIGH); 
   delay(2000);
   digitalWrite(PWR_KEY, LOW);
+  // delay(2000);
 }
 
 void GPSTracker::powerReset(void)
@@ -420,7 +417,7 @@ bool GPSTracker::GSM_work_mode(int mode)
   return MC20_check_with_cmd("\n\r", "OK", CMD, 2, 2000, UART_DEBUG);
 }
 
-bool GPSTracker::GSM_sleep_mode(int mode)
+bool GPSTracker::GSM_config_slow_clk(int mode)
 {
   char buf_w[20];
   MC20_clean_buffer(buf_w, 20);

@@ -17,7 +17,6 @@ void setup() {
   pinMode(RGBPIN, OUTPUT);
   digitalWrite(RGBPIN, LOW);
   SerialUSB.begin(115200);
-  while(!SerialUSB);
 
   gprs.Power_On();
   SerialUSB.println("\n\rPower On!");
