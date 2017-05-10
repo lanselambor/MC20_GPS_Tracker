@@ -6,7 +6,6 @@
 
 
 #include <EnergySaving.h>
-#include <Adafruit_NeoPixel.h>
 #include "MC20_Common.h"
 #include "MC20_Arduino_Interface.h"
 #include "MC20_GNSS.h"

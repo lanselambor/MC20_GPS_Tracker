@@ -509,7 +509,7 @@ bool GNSS::setAlwaysLocateMode(int mode)
 
   //
   MC20_send_cmd(buf_w);
-  if(!MC20_check_with_cmd("\n\r", "+QGNSSCMD: $PMTK001,225,3*35", CMD, 5, 2000)){
+  if(!MC20_check_with_cmd("\n\r", "+QGNSSCMD: $PMTK001,225,3*35", CMD, 5, 2000, true)){
     return false;
   }
 

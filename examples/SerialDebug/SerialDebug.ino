@@ -5,6 +5,7 @@
 GPSTracker gpsTracker = GPSTracker();
 
 void setup() {
+
   SerialUSB.begin(115200);
   // while(!SerialUSB);
 

@@ -5,6 +5,8 @@
 #include <SeeedOLED.h>
 #include <Wire.h>
 
+// #define OLED_OPEN
+
 #define RGBPIN 10
 
 GPRS gprs = GPRS();
@@ -12,7 +14,7 @@ GNSS gnss = GNSS();
 
 const char apn[10] = "CMNET";
 const char URL[100] = "ziladuo.com";
-int port = 3001;
+int port = 3000;
 
 int ret = 0;
 
@@ -29,12 +31,14 @@ void setup() {
   /**
    * Init OLED
    */
+#ifdef OLED_OPEN   
   Wire.begin();
   SeeedOled.init();  //initialze SEEED OLED display
   SeeedOled.clearDisplay();          //clear the screen and set start position to top left corner
   SeeedOled.setNormalDisplay();      //Set display to normal mode (i.e non-inverse mode)
   SeeedOled.setPageMode();           //Set addressing mode to Page Mode
   oled_log("Wio Tracker!");
+#endif
 
   /**
    * Init GNSS
@@ -81,6 +85,7 @@ void loop()
     SerialUSB.print(",");
     SerialUSB.println(gnss.str_latitude);
 
+#ifdef OLED_OPEN
     if(gnss.longitude == 0 && gnss.latitude == 0)
     {
       searchCnt++;
@@ -108,6 +113,8 @@ void loop()
       SeeedOled.setTextXY(1,0);
       SeeedOled.putString(gnss.str_longitude);
     }
+#endif
+
   }
   else
   {
@@ -123,10 +130,12 @@ void loop()
 
 void oled_log(char *str)
 {
+#ifdef OLED_OPEN  
   SeeedOled.setTextXY(1,0);
   SeeedOled.putString("                "); 
   SeeedOled.setTextXY(1,0);
   SeeedOled.putString(str); 
+#endif  
 }
 
 /**

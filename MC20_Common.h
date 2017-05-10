@@ -190,7 +190,7 @@ public:
      * @param
      *  0 Disable slow clock
      *  1 Enable slow clock, and it is controlled by DTR
-     *  2 When there is no data on serial port in 5 seconds, module will enter into sleep Disable slow clock
+     *  2 When there is no data on serial port in 5 seconds, module will enter Sleep Disable slow clock
      */
     bool GSM_config_slow_clk(int mode);
 
@@ -200,11 +200,12 @@ public:
      */
     bool AT_PowerDown(void);
     
-private:
+// private:
     bool checkSIMStatus(void);
     int PWR_KEY = 13;  // Pulse power control
     int PWR_BAT = 7;  // BAT power
     int RGB_PIN = 10;  // RGB LED Pin
     int VB_PIN = 12;  // VCCB control pin
+    int DTR_PIN  = 9;  
 };
 #endif
